@@ -146,7 +146,7 @@ dotenv.config();
 
 const router = express.Router();
 const stripe = new Stripe(
-  process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_12345",
+  (process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key_12345").trim(),
 );
 
 // ১. Stripe Webhook Handler (index.js-এ সরাসরি ব্যবহৃত হবে)
@@ -158,11 +158,10 @@ export const stripeWebhookHandler = async (req, res) => {
     event = stripe.webhooks.constructEvent(
       req.body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET,
+      (process.env.STRIPE_WEBHOOK_SECRET || "").trim(),
     );
   } catch (err) {
     console.error("Webhook Signature Verification Failed:", err.message);
-    console.error("Loaded Secret:", process.env.STRIPE_WEBHOOK_SECRET);
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -226,10 +225,19 @@ router.post(
         });
       }
 
-      const clientUrl = process.env.CLIENT_URL || "http://localhost:3000";
+      // অদৃশ্য স্পেস বা নিউলাইন পরিষ্কার করে সঠিক URL নিশ্চিত করা
+      let rawClientUrl = (
+        process.env.CLIENT_URL || "https://vercel.app"
+      ).trim();
+
+      if (!rawClientUrl.startsWith("http")) {
+        rawClientUrl = `https://${rawClientUrl}`;
+      }
+      const clientUrl = rawClientUrl.replace(/\/+$/, "");
+
       const session = await stripe.checkout.sessions.create({
         mode: "payment",
-        customer_email: req.user.email,
+        ...(req.user.email ? { customer_email: req.user.email.trim() } : {}),
         line_items: [
           {
             price_data: {
@@ -282,4 +290,3 @@ router.get(
 );
 
 export default router;
-
