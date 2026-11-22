@@ -44,7 +44,6 @@
 // });
 
 import express from "express";
-import cors from "cors";
 import dotenv from "dotenv";
 import { connectDB } from "./config/db.js";
 
@@ -58,31 +57,32 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-const allowedOrigins = [
-  "https://wedplan-client-bay.vercel.app",
-  "http://localhost:3000",
-  process.env.CLIENT_URL,
-].filter(Boolean);
+// সব রিকোয়েস্ট ও Preflight (OPTIONS)-এর জন্য সরাসরি CORS হেডার
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (
+    origin &&
+    (origin === "https://vercel.app" ||
+      origin.endsWith(".vercel.app") ||
+      origin === "http://localhost:3000" ||
+      origin === process.env.CLIENT_URL)
+  ) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  } else {
+    res.setHeader("Access-Control-Allow-Origin", "https://vercel.app");
+  }
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+  );
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (
-      !origin ||
-      allowedOrigins.includes(origin) ||
-      origin.endsWith(".vercel.app")
-    ) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
 
 // Stripe Webhook (অবশ্যই express.json()-এর আগে থাকতে হবে)
 app.post(
