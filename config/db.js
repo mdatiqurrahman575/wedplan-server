@@ -26,3 +26,4 @@ export function getCollections() {
     transactionsCollection: db.collection('transactions'),
   };
 }
+
