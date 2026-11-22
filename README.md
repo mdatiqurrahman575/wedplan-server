@@ -1,11 +1,24 @@
 # WedPlan — Role-Based Wedding Planning Platform (Backend API)
 
-Modular RESTful backend server for **WedPlan**, built with **Node.js**, **Express.js**, **MongoDB**, **JWT Role Protection**, and **Stripe Webhooks**.
+Modular RESTful backend server for **WedPlan**, built with **Node.js**, **Express.js**, **MongoDB**, **JWT Role Protection**, and **Stripe Webhooks**. It powers secure role-based dashboards, booking management, service moderation, and automated vendor subscription upgrades.
 
-## Live Server URL
+## Live Links & Repositories
 
-- **Production API (Vercel):** https://wedplan-server-nu-virid.vercel.app
-- **Frontend Client URL:** https://wedplan-client-bay.vercel.app
+- **Live Website (Client):** https://wedplan-client-bay.vercel.app
+- **Production API (Server):** https://wedplan-server-nu-virid.vercel.app
+- **Client GitHub Repository:** https://github.com/mdatiqurrahman575/wedplan-client
+- **Server GitHub Repository:** https://github.com/mdatiqurrahman575/wedplan-server
+
+---
+
+## Important Features
+
+- **JWT Authentication & Role-Based Access Control (RBAC):** Verifies Better Auth JWT tokens on every protected endpoint with dedicated middleware for `Admin`, `Vendor`, and `Customer` roles.
+- **User Block Enforcement:** Real-time verification ensuring blocked users cannot access protected APIs or perform platform actions.
+- **Vendor Plan Enforcement:** Automatically limits Free-tier vendors to a maximum of 3 active services while unlocking unlimited listings for Premium vendors.
+- **Smart Booking Conflict Prevention:** Prevents duplicate active bookings for the same service on the same event date and blocks vendors/admins from submitting customer bookings.
+- **Secure Stripe Checkout & Webhook Integration:** Creates authenticated Stripe Checkout sessions and verifies `checkout.session.completed` webhook events via raw-body signatures before upgrading vendor plans and recording transactions.
+- **Admin Moderation & Analytics:** Provides platform-wide statistics, user block/unblock controls, service approval workflows, and read-only transaction logs.
 
 ---
 
@@ -13,7 +26,7 @@ Modular RESTful backend server for **WedPlan**, built with **Node.js**, **Expres
 
 - **Runtime & Framework:** Node.js, Express.js
 - **Database:** MongoDB Native Driver (`wedplanDB`)
-- **Security & Auth:** Better Auth JWT Verification, Role-Based Access Control (`Admin`, `Vendor`, `Customer`), User Block Enforcement
+- **Security & Auth:** Better Auth JWT Verification (`jose`), Role-Based Access Control (`Admin`, `Vendor`, `Customer`), User Block Enforcement
 - **Payments:** Stripe Checkout Sessions & Raw-Body Webhook Verification
 
 ---
@@ -78,7 +91,7 @@ wedplan-server/
 1. **Clone the repository:**
 
    ```bash
-   git clone https://github.com
+   git clone https://wedplan-server-nu-virid.vercel.app
    cd wedplan-server
    ```
 
