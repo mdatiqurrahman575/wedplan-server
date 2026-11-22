@@ -58,17 +58,31 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(
-  cors({
-    origin: [
-      process.env.CLIENT_URL || "http://localhost:3000",
-      "https://vercel.app",
-      "http://localhost:3000",
-    ],
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  }),
-);
+const allowedOrigins = [
+  "https://wedplan-client-bay.vercel.app",
+  "http://localhost:3000",
+  process.env.CLIENT_URL,
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    if (
+      !origin ||
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Stripe Webhook (অবশ্যই express.json()-এর আগে থাকতে হবে)
 app.post(
@@ -80,7 +94,7 @@ app.post(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Vercel Serverless-এর জন্য প্রতিটি রিকোয়েস্টের আগে DB কানেকশন নিশ্চিত করা
+// প্রতিটি রিকোয়েস্টের আগে DB কানেকশন নিশ্চিত করা
 app.use(async (req, res, next) => {
   try {
     await connectDB();
@@ -99,13 +113,11 @@ app.get("/", (req, res) => {
     .json({ success: true, message: "WedPlan Modular Server is running!" });
 });
 
-// সব আলাদা রাউট যুক্ত করা হলো
 app.use("/api", serviceRoutes);
 app.use("/api", bookingRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", paymentRoutes);
 
-// লোকাল পিসিতে চালানোর জন্য
 if (process.env.NODE_ENV !== "production") {
   connectDB().then(() => {
     app.listen(PORT, () => {
@@ -114,5 +126,4 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// Vercel-এ ডেপ্লয় করার জন্য এটি বাধ্যতামূলক
 export default app;
